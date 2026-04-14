@@ -1,57 +1,71 @@
-1. Graphical Abstract
-![Main Interface](https://via.placeholder.com/600x400.png?text=Upload+Your+App+Screenshot+Here)
-*Figure 1: The Graphical User Interface (GUI) of the Personal Expense Tracker, showcasing the input area, expense list, and total balance display.*
+# Personal Expense Tracker (GUI Version)
 
 ---
 
-2. Purpose of the Software
-This software is a lightweight **Personal Expense Tracker** designed for undergraduate students to manage their daily finances efficiently. 
+## 1. Graphical Abstract
+![Main Interface](https://raw.githubusercontent.com/[你的GitHub用戶名]/[倉庫名]/main/screenshot.png)
+*Figure 1: The main interface of the application showing the transaction list and budget summary.*
 
-### Development Process: Agile Methodology
-We adopted the **Agile Development Process** for this project. 
-- **Why Agile?** It allows our 4-person team to develop a "Pilot Level" software quickly and perform iterative updates based on testing. This ensures the software remains functional and user-friendly within a short development cycle.
-- **Goal**: To provide a simple, secure, and offline solution for tracking income and expenses using a local database (JSON).
+---
 
+## 2. Purpose of the Software
+### Software Development Process
+[cite_start]We implemented the **Agile Methodology** for this project[cite: 46]. 
 
+### Why Agile over Waterfall?
+- [cite_start]**Iterative Development**: Agile allows our team to build a "pilot level" functional prototype quickly and refine the UI based on internal testing[cite: 32, 47].
+- [cite_start]**Flexibility**: Given the short development cycle, Agile helps us manage tasks across 4 members more efficiently compared to the rigid phases of Waterfall[cite: 47].
 
-3. Software Development Plan
+### Target Market & Possible Usage
+[cite_start]This software is designed for **university students** who need a simple, offline, and secure way to track their daily expenses (e.g., food, transport, academic materials) without complex banking integration[cite: 48].
 
-### 3.1 Members (Roles & Responsibilities)
-| Name | Role | Responsibilities | Contribution |
+---
+
+## 3. Software Development Plan
+### Development Process
+Our team followed a 3-week sprint cycle: Requirement Analysis -> UI Design -> Core Coding -> Testing.
+
+### Members (Roles & Responsibilities & Portion)
+| Name | Role | Responsibilities | Portion |
 | :--- | :--- | :--- | :--- |
-| [Your Name] | Project Manager (PM) | GitHub Repo management, Documentation, and QA. | 25% |
-| [Member B] | Lead Developer | Core GUI development and CRUD logic implementation. | 25% |
-| [Member C] | Algorithm Engineer | Data structure design (JSON) and Flowchart modeling. | 25% |
-| [Member D] | Media Specialist | Video demo production and Graphical Abstract design. | 25% |
+| [Student A] | Project Manager | GitHub Management & Documentation | 25% |
+| [Student B] | Lead Developer | Core Python Logic & JSON Database | 25% |
+| [Student C] | UI/UX Designer | Tkinter GUI Design & Graphical Abstract | 25% |
+| [Student D] | QA & Media | Testing & Video Demo Production | 25% |
 
-3.2 Development Schedule
-| Phase | Task | Status |
-| :--- | :--- | :--- |
-| Phase 1 | Requirements analysis & UI Mockup | Completed |
-| Phase 2 | Basic CRUD Logic Development (CLI) | Completed |
-| Phase 3 | GUI Implementation (Tkinter) | In Progress |
-| Phase 4 | Testing & Final Documentation | Pending |
+### Schedule
+- [cite_start]**Week 1**: Environment setup and initial GUI mockup[cite: 52].
+- [cite_start]**Week 2**: Implementation of CRUD logic and JSON integration[cite: 52].
+- [cite_start]**Week 3**: Final debugging, documentation, and video recording[cite: 52].
 
-3.3 Algorithm (Flowchart)
-Our software follows an **Event-Driven Architecture**:
-1. **Start**: Initialize the main window.
-2. **Input**: User enters Category and Amount.
-3. **Validation**: Check if inputs are valid (e.g., non-empty, numeric amount).
-4. **Processing**: Write data to `expenses.json`.
-5. **UI Update**: Refresh the Treeview list and recalculate the Total Expense.
-6. **End**.
+### Algorithm
+1. **Initialize**: Load previous data from `expenses.json`.
+2. **Input**: User enters category (String) and amount (Float).
+3. [cite_start]**Validation**: Check if inputs are valid and non-empty[cite: 53].
+4. [cite_start]**Processing**: Append data to local list and update total sum[cite: 53].
+5. [cite_start]**Output**: Refresh the Treeview display and save to JSON[cite: 53].
+
+### Current Status
+[cite_start]The software has reached the **Pilot Level**[cite: 32, 54]. All core functions (Add, Delete, View, Totaling) are fully operational.
+
+### Future Plan
+- Add data visualization (Pie charts for spending categories).
+- [cite_start]Implement a password-protected login system for privacy[cite: 55].
 
 ---
 
-4. Environment & Declaration
+## 4. Environment
+- [cite_start]**Programming Language**: Python 3.10 or above[cite: 62].
+- **Operating System**: Cross-platform (Windows, macOS, Linux).
+- [cite_start]**Libraries**: Tkinter (Standard Library), JSON, OS, Datetime[cite: 62].
+- [cite_start]**Hardware**: Minimum 4GB RAM and 100MB disk space[cite: 62].
 
-4.1 System Requirements
-- **Language**: Python 3.x
-- **Libraries**: Tkinter (Built-in), JSON (Built-in), OS, Datetime.
-- **Operating System**: Windows / macOS / Linux (Cross-platform).
+---
 
-4.2 Declaration
-We hereby declare that:
-1. The source code is originally developed by our team members.
-2. All third-party libraries (Tkinter) used in this project are properly declared.
-3. The software is provided as a pilot level demonstration for the COMP2116 course.
+## 5. How to Run
+1. Ensure you have **Python 3** installed on your computer.
+2. Download all files from this GitHub repository.
+3. Open your terminal or command prompt.
+4. Navigate to the project folder and run:
+   ```bash
+   python expense_tracker_gui.py
