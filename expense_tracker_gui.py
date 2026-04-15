@@ -1,157 +1,189 @@
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, simpledialog
 import json
 import os
-import datetime
-from tkinter import messagebox, simpledialog
-
-DATA_FILE = 'expenses.json'
+from datetime import datetime, timedelta
 
 class ExpenseTrackerApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("個人財務收支管理工具 V2.0")
-        self.root.geometry("600x500")
+        self.root.title("Personal Expense Tracker (Pro Version)")
+        self.root.geometry("800x700")
         
-        # 初始化資料
-        self.data = self.load_data()
-        
-        # UI 配置
-        self.create_widgets()
-        self.update_treeview()
+        # Data logic
+        self.file_path = "expenses.json"
+        self.expenses = self.load_data()
+        self.income = 0.0
+
+        # UI Initialization
+        self.setup_ui()
+        self.refresh_tree()
 
     def load_data(self):
-        if not os.path.exists(DATA_FILE):
-            return []
-        with open(DATA_FILE, 'r', encoding='utf-8') as file:
-            return json.load(file)
+        if os.path.exists(self.file_path):
+            try:
+                with open(self.file_path, "r") as f:
+                    return json.load(f)
+            except:
+                return []
+        return []
 
     def save_data(self):
-        with open(DATA_FILE, 'w', encoding='utf-8') as file:
-            json.dump(self.data, file, ensure_ascii=False, indent=4)
-     # 1. Update Function (更新選中的記錄)
-    def update_item(self):
-        selected_item = self.tree.selection()
-        if not selected_item:
-            messagebox.showwarning("Update Error", "Please select an item to update.")
-            return
-    
-    # 獲取新數據 (範例使用彈窗，也可直接讀取 Entry 框)
-        new_category = self.category_entry.get()
-        new_amount = self.amount_entry.get()
-    
-        if new_category and new_amount:
-            item_id = self.tree.item(selected_item)['values'][0]
-            for exp in self.expenses:
-                if exp['id'] == item_id:
-                    exp['category'] = new_category
-                    exp['amount'] = float(new_amount)
-            self.save_data()
-            self.refresh_tree()
-            messagebox.showinfo("Success", "Record updated successfully.")
+        with open(self.file_path, "w") as f:
+            json.dump(self.expenses, f, indent=4)
 
-# 2. Compare Function (昨日 vs 今日)
-    def compare_spending(self):
-    today = datetime.date.today().isoformat()
-    yesterday = (datetime.date.today() - datetime.timedelta(days=1)).isoformat()
-    
-    today_sum = sum(e['amount'] for e in self.expenses if e['date'] == today)
-    yesterday_sum = sum(e['amount'] for e in self.expenses if e['date'] == yesterday)
-    
-    diff = today_sum - yesterday_sum
-    status = "more" if diff > 0 else "less"
-    messagebox.showinfo("Comparison", f"Today: ${today_sum}\nYesterday: ${yesterday_sum}\nYou spent ${abs(diff)} {status} than yesterday.")
+    def setup_ui(self):
+        # --- Top Section: Income & Balance ---
+        top_frame = tk.LabelFrame(self.root, text="Financial Overview", padx=10, pady=10)
+        top_frame.pack(fill="x", padx=10, pady=5)
 
-# 3. Income & Balance (計算剩餘預算)
-    def calculate_balance(self):
+        tk.Label(top_frame, text="Monthly Income: $").grid(row=0, column=0)
+        self.income_entry = tk.Entry(top_frame)
+        self.income_entry.grid(row=0, column=1)
+        tk.Button(top_frame, text="Set Income", command=self.update_balance).grid(row=0, column=2, padx=5)
+
+        self.balance_label = tk.Label(top_frame, text="Remaining Balance: $0.00", font=("Arial", 10, "bold"))
+        self.balance_label.grid(row=0, column=3, padx=20)
+
+        # --- Input Section ---
+        input_frame = tk.LabelFrame(self.root, text="Add / Update Record", padx=10, pady=10)
+        input_frame.pack(fill="x", padx=10, pady=5)
+
+        tk.Label(input_frame, text="Date (YYYY-MM-DD):").grid(row=0, column=0)
+        self.date_entry = tk.Entry(input_frame)
+        self.date_entry.insert(0, datetime.now().strftime("%Y-%m-%d"))
+        self.date_entry.grid(row=0, column=1)
+
+        tk.Label(input_frame, text="Category:").grid(row=0, column=2, padx=5)
+        self.cat_entry = tk.Entry(input_frame)
+        self.cat_entry.grid(row=0, column=3)
+
+        tk.Label(input_frame, text="Amount:").grid(row=1, column=0, pady=5)
+        self.amt_entry = tk.Entry(input_frame)
+        self.amt_entry.grid(row=1, column=1)
+
+        # Buttons for CRUD
+        btn_frame = tk.Frame(input_frame)
+        btn_frame.grid(row=1, column=2, columnspan=2, sticky="e")
+        tk.Button(btn_frame, text="Add", width=8, command=self.add_item).pack(side="left", padx=2)
+        tk.Button(btn_frame, text="Update", width=8, command=self.update_item).pack(side="left", padx=2)
+        tk.Button(btn_frame, text="Search", width=8, command=self.search_items).pack(side="left", padx=2)
+
+        # --- Table Section ---
+        table_frame = tk.Frame(self.root)
+        table_frame.pack(fill="both", expand=True, padx=10, pady=5)
+
+        columns = ("ID", "Date", "Category", "Amount")
+        self.tree = ttk.Treeview(table_frame, columns=columns, show="headings")
+        for col in columns:
+            self.tree.heading(col, text=col)
+            self.tree.column(col, width=150)
+        self.tree.pack(fill="both", expand=True)
+
+        # --- Analysis & Control Section ---
+        ctrl_frame = tk.Frame(self.root, pady=10)
+        ctrl_frame.pack(fill="x", padx=10)
+
+        tk.Button(ctrl_frame, text="Compare (Today vs Yesterday)", command=self.compare_days).pack(side="left", padx=5)
+        tk.Button(ctrl_frame, text="Monthly Summary", command=self.monthly_summary).pack(side="left", padx=5)
+        tk.Button(ctrl_frame, text="Delete Selected", bg="#ffcccc", command=self.delete_item).pack(side="right", padx=5)
+        tk.Button(ctrl_frame, text="DELETE ALL", bg="red", fg="white", command=self.delete_all).pack(side="right", padx=5)
+
+    # --- Logic Methods ---
+    def update_balance(self):
         try:
-            income = float(self.income_entry.get())
-            total_spent = sum(e['amount'] for e in self.expenses)
-            balance = income - total_spent
-            self.balance_label.config(text=f"Balance: ${balance:.2f}", fg="green" if balance >= 0 else "red")
+            self.income = float(self.income_entry.get())
+            self.refresh_tree()
         except ValueError:
-            messagebox.showerror("Input Error", "Please enter a valid number for income.")
-
-
-    def create_widgets(self):
-        # 輸入區塊
-        input_frame = ttk.LabelFrame(self.root, text="新增開銷")
-        input_frame.pack(pady=10, padx=10, fill="x")
-
-        ttk.Label(input_frame, text="類別:").grid(row=0, column=0, padx=5, pady=5)
-        self.cat_entry = ttk.Entry(input_frame)
-        self.cat_entry.grid(row=0, column=1, padx=5, pady=5)
-
-        ttk.Label(input_frame, text="金額:").grid(row=0, column=2, padx=5, pady=5)
-        self.amt_entry = ttk.Entry(input_frame)
-        self.amt_entry.grid(row=0, column=3, padx=5, pady=5)
-
-        add_btn = ttk.Button(input_frame, text="新增紀錄", command=self.add_item)
-        add_btn.grid(row=0, column=4, padx=5, pady=5)
-
-        # 列表區塊
-        list_frame = ttk.Frame(self.root)
-        list_frame.pack(pady=10, padx=10, fill="both", expand=True)
-
-        columns = ("id", "date", "category", "amount")
-        self.tree = ttk.Treeview(list_frame, columns=columns, show="headings")
-        self.tree.heading("id", text="ID")
-        self.tree.heading("date", text="日期")
-        self.tree.heading("category", text="類別")
-        self.tree.heading("amount", text="金額 ($)")
-        self.tree.pack(side="left", fill="both", expand=True)
-
-        # 功能按鈕
-        btn_frame = ttk.Frame(self.root)
-        btn_frame.pack(pady=10)
-        
-        ttk.Button(btn_frame, text="刪除選定紀錄", command=self.delete_item).pack(side="left", padx=5)
-        
-        self.total_label = ttk.Label(self.root, text="總支出: $0", font=("Arial", 12, "bold"))
-        self.total_label.pack(pady=10)
+            messagebox.showerror("Error", "Please enter a valid number for income.")
 
     def add_item(self):
-        cat = self.cat_entry.get()
-        amt = self.amt_entry.get()
-        
-        if not cat or not amt:
-            messagebox.showwarning("警告", "請完整填寫類別與金額！")
+        try:
+            date = self.date_entry.get()
+            cat = self.cat_entry.get()
+            amt = float(self.amt_entry.get())
+            if not cat: raise ValueError
+            
+            new_id = max([e['id'] for e in self.expenses], default=0) + 1
+            self.expenses.append({"id": new_id, "date": date, "category": cat, "amount": amt})
+            self.save_data()
+            self.refresh_tree()
+        except ValueError:
+            messagebox.showerror("Error", "Invalid Input. Check Amount and Category.")
+
+    def update_item(self):
+        selected = self.tree.selection()
+        if not selected:
+            messagebox.showwarning("Warning", "Please select a record to update.")
             return
         
-        try:
-            new_item = {
-                "id": len(self.data) + 1,
-                "date": datetime.now().strftime("%Y-%m-%d"),
-                "category": cat,
-                "amount": float(amt)
-            }
-            self.data.append(new_item)
-            self.save_data()
-            self.update_treeview()
-            self.cat_entry.delete(0, tk.END)
-            self.amt_entry.delete(0, tk.END)
-        except ValueError:
-            messagebox.showerror("錯誤", "金額必須是數字！")
+        item_id = self.tree.item(selected)['values'][0]
+        for exp in self.expenses:
+            if exp['id'] == item_id:
+                try:
+                    exp['date'] = self.date_entry.get()
+                    exp['category'] = self.cat_entry.get()
+                    exp['amount'] = float(self.amt_entry.get())
+                    self.save_data()
+                    self.refresh_tree()
+                    messagebox.showinfo("Success", "Record updated.")
+                    return
+                except ValueError:
+                    messagebox.showerror("Error", "Invalid update values.")
 
-    def update_treeview(self):
-        for i in self.tree.get_children():
-            self.tree.delete(i)
-        total = 0
-        for item in self.data:
-            self.tree.insert("", "end", values=(item["id"], item["date"], item["category"], item["amount"]))
-            total += item["amount"]
-        self.total_label.config(text=f"總支出: ${total:.2f}")
+    def search_items(self):
+        keyword = self.cat_entry.get().lower()
+        self.tree.delete(*self.tree.get_children())
+        for exp in self.expenses:
+            if keyword in exp['category'].lower() or keyword in exp['date']:
+                self.tree.insert("", "end", values=(exp['id'], exp['date'], exp['category'], exp['amount']))
 
     def delete_item(self):
         selected = self.tree.selection()
-        if not selected:
-            messagebox.showwarning("警告", "請先選擇一筆紀錄！")
-            return
-        
-        item_values = self.tree.item(selected[0])['values']
-        self.data = [i for i in self.data if i['id'] != item_values[0]]
+        if not selected: return
+        item_id = self.tree.item(selected)['values'][0]
+        self.expenses = [e for e in self.expenses if e['id'] != item_id]
         self.save_data()
-        self.update_treeview()
+        self.refresh_tree()
+
+    def delete_all(self):
+        if messagebox.askyesno("Confirm", "Are you sure you want to delete ALL records?"):
+            self.expenses = []
+            self.save_data()
+            self.refresh_tree()
+
+    def compare_days(self):
+        today_str = datetime.now().strftime("%Y-%m-%d")
+        yesterday_str = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
+        
+        today_sum = sum(e['amount'] for e in self.expenses if e['date'] == today_str)
+        yesterday_sum = sum(e['amount'] for e in self.expenses if e['date'] == yesterday_str)
+        
+        msg = f"Today's Spend: ${today_sum:.2f}\nYesterday's Spend: ${yesterday_sum:.2f}\n"
+        msg += f"Difference: ${abs(today_sum - yesterday_sum):.2f} "
+        msg += "more" if today_sum > yesterday_sum else "less"
+        messagebox.showinfo("Comparison", msg)
+
+    def monthly_summary(self):
+        if not self.expenses: return
+        categories = {}
+        for e in self.expenses:
+            categories[e['category']] = categories.get(e['category'], 0) + e['amount']
+        
+        top_cat = max(categories, key=categories.get)
+        total = sum(categories.values())
+        messagebox.showinfo("Monthly Sum-up", f"Total Spent: ${total:.2f}\nTop Category: {top_cat} (${categories[top_cat]:.2f})")
+
+    def refresh_tree(self):
+        self.tree.delete(*self.tree.get_children())
+        total_spent = 0
+        for exp in self.expenses:
+            self.tree.insert("", "end", values=(exp['id'], exp['date'], exp['category'], exp['amount']))
+            total_spent += exp['amount']
+        
+        balance = self.income - total_spent
+        self.balance_label.config(text=f"Remaining Balance: ${balance:.2f}", 
+                                  fg="red" if balance < 0 else "darkgreen")
 
 if __name__ == "__main__":
     root = tk.Tk()
