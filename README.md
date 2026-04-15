@@ -1,21 +1,21 @@
 ## Table of Contents
 
-* [Graphical Abstract](#graphical-abstract)
-* [Purpose of the Software](#purpose-of-the-software)
+* [1. Graphical Abstract](#graphical-abstract)
+* [2. Purpose of the Software](#purpose-of-the-software)
   * [Software Development Process](#software-development-process)
   * [Why Agile over Waterfall?](#why-agile-over-waterfall)
   * [Target Market & Possible Usage](#target-market--possible-usage)
-* [Software Development Plan](#software-development-plan)
+* [3. Software Development Plan](#software-development-plan)
   * [Development Process](#development-process)
   * [Members (Roles & Responsibilities & Portion)](#members-roles--responsibilities--portion)
   * [Schedule](#schedule)
   * [Algorithm](#algorithm)
   * [Current Status](#current-status)
   * [Future Plan](#future-plan)
-* [Environment](#environment)
-* [How to Run](#how-to-run)
-* [Demo](#demo)
-* [Declaration](#declaration)
+* [4. Environment](#environment)
+* [5. How to Run](#how-to-run)
+* [6. Demo](#demo)
+* [7. Declaration](#declaration)
 
 ---
 
