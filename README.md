@@ -64,35 +64,35 @@ Because our team is small (4 members) and requirements evolved during developmen
 ### 3.1 Development Process
 ----------------------------------------------------------------------------------------------------------
 Project Development Phases：
-1. Requirement Analysis & Prototype Design
+1. Requirement Analysis & Prototype Design：
 Target Market Identification: The software was designed for students tracking allowances and young professionals seeking a lightweight, offline-first budgeting tool.
 
 Requirement Gathering: During the first week, the team focused on gathering requirements and establishing a system design that allowed for evolving features like income comparison.
 
 Methodology Selection: An Agile methodology was chosen over Waterfall to handle flexible requirements and the small team size (4 members).
 
-2. System Design
+2. System Design：
 Architecture Design: The project lead designed the architecture and JSON data layer to ensure persistent storage without external database dependencies.
 
 Functional Logic: The system follows an event-driven loop logic, managing data through unique IDs to prevent conflicts after record deletions.
 
 Interface Planning: The UI was designed around a Tkinter window layout, featuring a Treeview for expense display and specific panels for Income/Balance calculations.
 
-3. Coding & Implementation
+3. Coding & Implementation：
 Data Layer Development (Sprint 1): The team implemented expenses.json CRUD operations, including file I/O and JSON schema initialization.
 
 GUI & Feature Integration (Sprint 2): Core developers built the Tkinter layout and integrated logic for adding, updating, and deleting items.
 
 Advanced Logic: Specialized functions were implemented for "Compare Spending" (Today vs. Yesterday) and "Income & Balance" calculations.
 
-4. Testing & Debugging
+4. Testing & Debugging：
 Quality Assurance: A dedicated QA lead was responsible for testing and generating bug reports during the third sprint.
 
 Error Handling: The team implemented input validation and error dialogs to ensure the application handles non-numeric or empty inputs gracefully.
 
 Polishing: Final adjustments included adding a scrollable expense list and enabling Enter-key form submissions for better user experience.
 
-5. Deployment & Delivery
+5. Deployment & Delivery：
 Documentation: The final phase involved writing the technical README, creating a demo video, and documenting team responsibilities.
 
 Environment Setup: The software was prepared for delivery as a zero-dependency Python application, requiring only a standard Python 3.8+ environment.
