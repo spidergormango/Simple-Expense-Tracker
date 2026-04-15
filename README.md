@@ -1,21 +1,23 @@
-## Table of Contents (目錄)
+## Table of Contents
 
-* [1. Graphical Abstract](#1-graphical-abstract)
-* [2. Purpose of the Software](#2-purpose-of-the-software)
+* [Graphical Abstract](#graphical-abstract)
+* [Purpose of the Software](#purpose-of-the-software)
   * [Software Development Process](#software-development-process)
   * [Why Agile over Waterfall?](#why-agile-over-waterfall)
   * [Target Market & Possible Usage](#target-market--possible-usage)
-* [3. Software Development Plan](#3-software-development-plan)
+* [Software Development Plan](#software-development-plan)
   * [Development Process](#development-process)
   * [Members (Roles & Responsibilities & Portion)](#members-roles--responsibilities--portion)
   * [Schedule](#schedule)
   * [Algorithm](#algorithm)
   * [Current Status](#current-status)
   * [Future Plan](#future-plan)
-* [4. Environment](#4-environment)
-* [5. How to Run](#5-how-to-run)
-* [6. Demo](#6-demo)
-* [7. Declaration](#7-declaration)
+* [Environment](#environment)
+* [How to Run](#how-to-run)
+* [Demo](#demo)
+* [Declaration](#declaration)
+
+---
 
 ---# 💰 Personal Expense Tracker (GUI Version)
 
