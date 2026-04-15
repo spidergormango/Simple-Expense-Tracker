@@ -27,7 +27,7 @@
 
 ## 1. Graphical Abstract
 <p align="center">
-  <img src="./graphical_abstract.jpg" alt="Application Screenshot" width="700">
+  <img src="./graphical_abstract.jpg.png" alt="Application Screenshot" width="700">
 </p>
 
 *Figure 1: The main interface of the application.*
