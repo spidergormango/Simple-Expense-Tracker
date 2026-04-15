@@ -1,23 +1,22 @@
 ## Table of Contents
 
-* [1. Graphical Abstract](#graphical-abstract)
-* [2. Purpose of the Software](#purpose-of-the-software)
+* [1. Graphical Abstract](#1-graphical-abstract)
+* [2. Purpose of the Software](#2-purpose-of-the-software)
   * [Software Development Process](#software-development-process)
   * [Why Agile over Waterfall?](#why-agile-over-waterfall)
-  * [Target Market & Possible Usage](#target-market--possible-usage)
-* [3. Software Development Plan](#software-development-plan)
-  * [Development Process](#development-process)
-  * [Members (Roles & Responsibilities & Portion)](#members-roles--responsibilities--portion)
-  * [Schedule](#schedule)
-  * [Algorithm](#algorithm)
-  * [Current Status](#current-status)
-  * [Future Plan](#future-plan)
-* [4. Environment](#environment)
-* [5. How to Run](#how-to-run)
-* [6. Demo](#demo)
-* [7. Declaration](#declaration)
-
----
+  * [Target Market / Possible Usage](#target-market--possible-usage)
+* [3. Software Development Plan](#3-software-development-plan)
+  * [3.1 Development Process](#31-development-process)
+  * [3.2 Members — Roles & Responsibilities](#32-members--roles--responsibilities)
+  * [3.3 Schedule (Gantt Overview)](#33-schedule-gantt-overview)
+  * [3.4 Algorithm](#34-algorithm)
+  * [3.5 Current Status](#35-current-status)
+  * [3.6 Future Plan](#36-future-plan)
+* [4. Demo](#4-demo)
+* [5. Environment](#5-environment)
+  * [How to Run](#how-to-run)
+* [6. Declaration](#6-declaration)
+* [7. References](#7-references)
 
 ---# 💰 Personal Expense Tracker (GUI Version)
 
