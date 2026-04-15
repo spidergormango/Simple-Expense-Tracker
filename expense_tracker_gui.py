@@ -1,206 +1,343 @@
 import tkinter as tk
-from tkinter import ttk, messagebox, simpledialog
+from tkinter import ttk, messagebox
 import json
 import os
-from datetime import datetime, timedelta
+import datetime
 
-# Database file name
 DATA_FILE = 'expenses.json'
+
 
 class ExpenseTrackerApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("Personal Expense Tracker v3.0")
-        self.root.geometry("800x700")
-        
-        # Data initialization
-        self.income = 0.0
+        self.root.title("Personal Expense Tracker V2.0")
+        self.root.geometry("780x600")
+        self.root.resizable(True, True)
+
+        # Load persisted data
         self.data = self.load_data()
-        
-        # UI Setup (Standardizing on .pack() for main containers to avoid conflicts)
-        self.setup_ui()
-        self.refresh_table()
+
+        # Build all UI widgets
+        self.create_widgets()
+        self.update_treeview()
+
+    # ------------------------------------------------------------------ #
+    # Data layer                                                           #
+    # ------------------------------------------------------------------ #
 
     def load_data(self):
-        """Loads data from JSON with error handling."""
+        """Load expenses from JSON.  Returns [] on missing file or error."""
         if not os.path.exists(DATA_FILE):
             return []
         try:
-            with open(DATA_FILE, 'r', encoding='utf-8') as file:
-                return json.load(file)
+            with open(DATA_FILE, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            return data if isinstance(data, list) else []
         except (json.JSONDecodeError, IOError):
+            messagebox.showerror(
+                "Load Error",
+                f"Could not read '{DATA_FILE}'.\nStarting with an empty list."
+            )
             return []
 
     def save_data(self):
-        """Saves current data to JSON."""
-        with open(DATA_FILE, 'w', encoding='utf-8') as file:
-            json.dump(self.data, file, ensure_ascii=False, indent=4)
+        """Persist self.data to JSON.  Shows an error dialog on failure."""
+        try:
+            with open(DATA_FILE, 'w', encoding='utf-8') as f:
+                json.dump(self.data, f, ensure_ascii=False, indent=4)
+        except IOError as e:
+            messagebox.showerror("Save Error", f"Could not save data:\n{e}")
 
-    def setup_ui(self):
-        # --- Income Section ---
-        income_frame = ttk.LabelFrame(self.root, text="Financial Summary")
-        income_frame.pack(pady=10, padx=10, fill="x")
-        
-        tk.Label(income_frame, text="Set Monthly Income: $").pack(side="left", padx=5)
-        self.income_entry = ttk.Entry(income_frame)
-        self.income_entry.pack(side="left", padx=5)
-        ttk.Button(income_frame, text="Update Balance", command=self.set_income).pack(side="left", padx=5)
-        
-        self.balance_label = tk.Label(income_frame, text="Balance: $0.00", font=("Arial", 10, "bold"))
-        self.balance_label.pack(side="right", padx=15)
+    # ------------------------------------------------------------------ #
+    # UI construction                                                      #
+    # ------------------------------------------------------------------ #
 
-        # --- Input Section ---
-        input_frame = ttk.LabelFrame(self.root, text="Entry Management")
-        input_frame.pack(pady=10, padx=10, fill="x")
+    def create_widgets(self):
 
-        # Using a sub-frame for grid layout to avoid mixing with .pack() of the root
-        grid_inner = tk.Frame(input_frame)
-        grid_inner.pack()
+        # ── Top: Add Expense ─────────────────────────────────────────── #
+        input_frame = ttk.LabelFrame(self.root, text="Add New Expense")
+        input_frame.pack(pady=8, padx=10, fill="x")
 
-        tk.Label(grid_inner, text="Date (YYYY-MM-DD):").grid(row=0, column=0, padx=5, pady=5)
-        self.date_input = ttk.Entry(grid_inner)
-        self.date_input.insert(0, datetime.now().strftime("%Y-%m-%d"))
-        self.date_input.grid(row=0, column=1, padx=5, pady=5)
+        ttk.Label(input_frame, text="Category:").grid(
+            row=0, column=0, padx=6, pady=6, sticky="w")
+        self.cat_entry = ttk.Entry(input_frame, width=18)
+        self.cat_entry.grid(row=0, column=1, padx=6, pady=6)
 
-        tk.Label(grid_inner, text="Category:").grid(row=0, column=2, padx=5, pady=5)
-        self.cat_input = ttk.Entry(grid_inner)
-        self.cat_input.grid(row=0, column=3, padx=5, pady=5)
+        ttk.Label(input_frame, text="Amount ($):").grid(
+            row=0, column=2, padx=6, pady=6, sticky="w")
+        self.amt_entry = ttk.Entry(input_frame, width=14)
+        self.amt_entry.grid(row=0, column=3, padx=6, pady=6)
 
-        tk.Label(grid_inner, text="Amount:").grid(row=1, column=0, padx=5, pady=5)
-        self.amt_input = ttk.Entry(grid_inner)
-        self.amt_input.grid(row=1, column=1, padx=5, pady=5)
+        ttk.Button(input_frame, text="Add Record",
+                   command=self.add_item).grid(row=0, column=4, padx=10, pady=6)
 
-        # --- Button Group ---
-        btn_frame = tk.Frame(input_frame)
-        btn_frame.pack(pady=10)
+        # Enter-key shortcuts
+        self.cat_entry.bind("<Return>", lambda e: self.amt_entry.focus())
+        self.amt_entry.bind("<Return>", lambda e: self.add_item())
 
-        ttk.Button(btn_frame, text="Add", command=self.add_item).pack(side="left", padx=5)
-        ttk.Button(btn_frame, text="Update Selected", command=self.update_item).pack(side="left", padx=5)
-        ttk.Button(btn_frame, text="Search Category", command=self.search_item).pack(side="left", padx=5)
-        ttk.Button(btn_frame, text="Delete Selected", command=self.delete_item).pack(side="left", padx=5)
+        # ── Income & Balance row ─────────────────────────────────────── #
+        balance_frame = ttk.LabelFrame(self.root, text="Income & Balance")
+        balance_frame.pack(pady=4, padx=10, fill="x")
 
-        # --- Table Section ---
-        table_frame = tk.Frame(self.root)
-        table_frame.pack(pady=10, padx=10, fill="both", expand=True)
+        ttk.Label(balance_frame, text="Monthly Income ($):").grid(
+            row=0, column=0, padx=6, pady=6, sticky="w")
+        self.income_entry = ttk.Entry(balance_frame, width=14)
+        self.income_entry.grid(row=0, column=1, padx=6, pady=6)
 
-        cols = ("ID", "Date", "Category", "Amount")
-        self.tree = ttk.Treeview(table_frame, columns=cols, show="headings")
-        for col in cols:
-            self.tree.heading(col, text=col)
-            self.tree.column(col, width=100)
+        ttk.Button(balance_frame, text="Calculate Balance",
+                   command=self.calculate_balance).grid(
+            row=0, column=2, padx=10, pady=6)
+
+        self.balance_label = ttk.Label(
+            balance_frame, text="Balance: —", font=("Arial", 11, "bold"))
+        self.balance_label.grid(row=0, column=3, padx=20, pady=6, sticky="w")
+
+        # ── Expense list (Treeview) ──────────────────────────────────── #
+        list_frame = ttk.Frame(self.root)
+        list_frame.pack(pady=6, padx=10, fill="both", expand=True)
+
+        columns = ("id", "date", "category", "amount")
+        self.tree = ttk.Treeview(
+            list_frame, columns=columns, show="headings", selectmode="browse")
+        self.tree.heading("id",       text="ID")
+        self.tree.heading("date",     text="Date")
+        self.tree.heading("category", text="Category")
+        self.tree.heading("amount",   text="Amount ($)")
+        self.tree.column("id",       width=45,  anchor="center")
+        self.tree.column("date",     width=105, anchor="center")
+        self.tree.column("category", width=230, anchor="w")
+        self.tree.column("amount",   width=110, anchor="e")
+
+        scrollbar = ttk.Scrollbar(
+            list_frame, orient="vertical", command=self.tree.yview)
+        self.tree.configure(yscrollcommand=scrollbar.set)
         self.tree.pack(side="left", fill="both", expand=True)
-        
-        scrollbar = ttk.Scrollbar(table_frame, orient="vertical", command=self.tree.yview)
-        self.tree.configure(yscroll=scrollbar.set)
         scrollbar.pack(side="right", fill="y")
 
-        # --- Analysis Section ---
-        ana_frame = tk.Frame(self.root)
-        ana_frame.pack(pady=10, fill="x", padx=10)
+        # ── Action buttons ───────────────────────────────────────────── #
+        btn_frame = ttk.Frame(self.root)
+        btn_frame.pack(pady=6)
 
-        ttk.Button(ana_frame, text="Compare Today/Yesterday", command=self.compare_spending).pack(side="left", padx=5)
-        ttk.Button(ana_frame, text="Monthly Summary", command=self.show_summary).pack(side="left", padx=5)
-        ttk.Button(ana_frame, text="DELETE ALL RECORDS", command=self.clear_all, style="Danger.TButton").pack(side="right", padx=5)
+        ttk.Button(btn_frame, text="Update Selected",
+                   command=self.update_item).pack(side="left", padx=6)
+        ttk.Button(btn_frame, text="Delete Selected",
+                   command=self.delete_item).pack(side="left", padx=6)
+        ttk.Button(btn_frame, text="Today vs Yesterday",
+                   command=self.compare_spending).pack(side="left", padx=6)
+        ttk.Button(btn_frame, text="Clear All",
+                   command=self.clear_all).pack(side="left", padx=6)
 
-    # --- Core Functions ---
-    def set_income(self):
-        try:
-            self.income = float(self.income_entry.get())
-            self.refresh_table()
-        except ValueError:
-            messagebox.showerror("Input Error", "Income must be a valid number.")
+        # ── Total label ──────────────────────────────────────────────── #
+        self.total_label = ttk.Label(
+            self.root, text="Total Expenses: $0.00",
+            font=("Arial", 12, "bold"))
+        self.total_label.pack(pady=8)
+
+    # ------------------------------------------------------------------ #
+    # CRUD — Add                                                           #
+    # ------------------------------------------------------------------ #
 
     def add_item(self):
+        """Validate inputs and append a new expense record."""
+        cat     = self.cat_entry.get().strip()
+        amt_str = self.amt_entry.get().strip()
+
+        if not cat or not amt_str:
+            messagebox.showwarning(
+                "Missing Input", "Please fill in both Category and Amount.")
+            return
+
         try:
-            date = self.date_input.get()
-            cat = self.cat_input.get()
-            amt = float(self.amt_input.get())
-            if not cat: raise ValueError
-            
-            new_id = max([item['id'] for item in self.data], default=0) + 1
-            self.data.append({"id": new_id, "date": date, "category": cat, "amount": amt})
-            self.save_data()
-            self.refresh_table()
+            amount = float(amt_str)
         except ValueError:
-            messagebox.showerror("Error", "Invalid data. Check amount and category.")
+            messagebox.showerror(
+                "Invalid Amount", "Amount must be a number (e.g. 25.50).")
+            return
+
+        if amount <= 0:
+            messagebox.showwarning(
+                "Invalid Amount", "Amount must be greater than zero.")
+            return
+
+        # Use max(id)+1 to avoid duplicate IDs after deletions
+        new_id = max((item["id"] for item in self.data), default=0) + 1
+
+        self.data.append({
+            "id":       new_id,
+            "date":     datetime.datetime.now().strftime("%Y-%m-%d"),
+            "category": cat,
+            "amount":   round(amount, 2)
+        })
+        self.save_data()
+        self.update_treeview()
+
+        self.cat_entry.delete(0, tk.END)
+        self.amt_entry.delete(0, tk.END)
+        self.cat_entry.focus()
+
+    # ------------------------------------------------------------------ #
+    # CRUD — Update                                                        #
+    # ------------------------------------------------------------------ #
 
     def update_item(self):
+        """Update the selected record using the values in the input fields.
+
+        Workflow: select a row → type new category & amount → click Update.
+        """
         selected = self.tree.selection()
         if not selected:
-            messagebox.showwarning("Selection", "Please select a record from the list to update.")
+            messagebox.showwarning(
+                "No Selection", "Please select a record to update.")
             return
-        
-        item_id = self.tree.item(selected[0])['values'][0]
-        for item in self.data:
-            if item['id'] == item_id:
-                try:
-                    item['date'] = self.date_input.get()
-                    item['category'] = self.cat_input.get()
-                    item['amount'] = float(self.amt_input.get())
-                    self.save_data()
-                    self.refresh_table()
-                    messagebox.showinfo("Success", "Record updated successfully.")
-                    return
-                except ValueError:
-                    messagebox.showerror("Error", "Invalid values for update.")
 
-    def search_item(self):
-        query = self.cat_input.get().lower()
-        self.tree.delete(*self.tree.get_children())
-        for item in self.data:
-            if query in item['category'].lower():
-                self.tree.insert("", "end", values=(item['id'], item['date'], item['category'], item['amount']))
+        new_category  = self.cat_entry.get().strip()
+        new_amount_str = self.amt_entry.get().strip()
+
+        if not new_category or not new_amount_str:
+            messagebox.showwarning(
+                "Missing Input",
+                "Type the new Category and Amount in the fields above,\n"
+                "then click Update Selected."
+            )
+            return
+
+        try:
+            new_amount = float(new_amount_str)
+        except ValueError:
+            messagebox.showerror(
+                "Invalid Amount", "Amount must be a number (e.g. 25.50).")
+            return
+
+        if new_amount <= 0:
+            messagebox.showwarning(
+                "Invalid Amount", "Amount must be greater than zero.")
+            return
+
+        item_id = self.tree.item(selected[0])['values'][0]
+        for exp in self.data:
+            if exp['id'] == item_id:
+                exp['category'] = new_category
+                exp['amount']   = round(new_amount, 2)
+                break
+
+        self.save_data()
+        self.update_treeview()
+        messagebox.showinfo("Updated", "Record updated successfully.")
+
+        self.cat_entry.delete(0, tk.END)
+        self.amt_entry.delete(0, tk.END)
+
+    # ------------------------------------------------------------------ #
+    # CRUD — Delete                                                        #
+    # ------------------------------------------------------------------ #
 
     def delete_item(self):
+        """Delete the selected expense record (with confirmation)."""
         selected = self.tree.selection()
-        if not selected: return
-        item_id = self.tree.item(selected[0])['values'][0]
-        self.data = [i for i in self.data if i['id'] != item_id]
+        if not selected:
+            messagebox.showwarning(
+                "No Selection", "Please select a record to delete.")
+            return
+
+        vals = self.tree.item(selected[0])['values']
+        if not messagebox.askyesno(
+                "Confirm Delete",
+                f"Delete record ID {vals[0]}  |  {vals[2]}  |  ${float(vals[3]):.2f}?"):
+            return
+
+        self.data = [i for i in self.data if i['id'] != vals[0]]
         self.save_data()
-        self.refresh_table()
+        self.update_treeview()
 
     def clear_all(self):
-        if messagebox.askyesno("Confirm", "Danger! This will delete ALL data. Proceed?"):
+        """Delete every record after confirmation."""
+        if not self.data:
+            messagebox.showinfo("Empty", "The expense list is already empty.")
+            return
+        if messagebox.askyesno(
+                "Confirm Clear All",
+                "Delete ALL expense records?\nThis cannot be undone."):
             self.data = []
             self.save_data()
-            self.refresh_table()
+            self.update_treeview()
+
+    # ------------------------------------------------------------------ #
+    # Compare spending: today vs yesterday                                 #
+    # ------------------------------------------------------------------ #
 
     def compare_spending(self):
-        today = datetime.now().strftime("%Y-%m-%d")
-        yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
-        
-        t_sum = sum(i['amount'] for i in self.data if i['date'] == today)
-        y_sum = sum(i['amount'] for i in self.data if i['date'] == yesterday)
-        
-        diff = t_sum - y_sum
-        status = "increased" if diff > 0 else "decreased"
-        messagebox.showinfo("Comparison", f"Today: ${t_sum:.2f}\nYesterday: ${y_sum:.2f}\nSpending has {status} by ${abs(diff):.2f}")
+        """Show a popup comparing today's total vs yesterday's total."""
+        today     = datetime.date.today().isoformat()
+        yesterday = (datetime.date.today() -
+                     datetime.timedelta(days=1)).isoformat()
 
-    def show_summary(self):
-        if not self.data: return
-        categories = {}
-        for i in self.data:
-            categories[i['category']] = categories.get(i['category'], 0) + i['amount']
-        
-        top_cat = max(categories, key=categories.get)
-        total = sum(categories.values())
-        messagebox.showinfo("Analysis", f"Total Expense: ${total:.2f}\nTop Spending: {top_cat} (${categories[top_cat]:.2f})")
+        today_sum     = sum(e['amount'] for e in self.data if e['date'] == today)
+        yesterday_sum = sum(e['amount'] for e in self.data if e['date'] == yesterday)
 
-    def refresh_table(self):
-        self.tree.delete(*self.tree.get_children())
-        total = 0
+        diff   = today_sum - yesterday_sum
+        if diff > 0:
+            status = f"${diff:.2f} MORE than yesterday"
+        elif diff < 0:
+            status = f"${abs(diff):.2f} LESS than yesterday"
+        else:
+            status = "the same as yesterday"
+
+        messagebox.showinfo(
+            "Today vs Yesterday",
+            f"Today ({today}):        ${today_sum:.2f}\n"
+            f"Yesterday ({yesterday}): ${yesterday_sum:.2f}\n\n"
+            f"You spent {status}."
+        )
+
+    # ------------------------------------------------------------------ #
+    # Income & Balance                                                     #
+    # ------------------------------------------------------------------ #
+
+    def calculate_balance(self):
+        """Calculate remaining balance = monthly income - total expenses."""
+        try:
+            income = float(self.income_entry.get().strip())
+        except ValueError:
+            messagebox.showerror(
+                "Invalid Income", "Please enter a valid number for income.")
+            return
+
+        total_spent = sum(e['amount'] for e in self.data)
+        balance     = income - total_spent
+        colour      = "green" if balance >= 0 else "red"
+        self.balance_label.config(
+            text=f"Balance: ${balance:.2f}", foreground=colour)
+
+    # ------------------------------------------------------------------ #
+    # Treeview refresh                                                     #
+    # ------------------------------------------------------------------ #
+
+    def update_treeview(self):
+        """Repopulate the Treeview and update the running total."""
+        for row in self.tree.get_children():
+            self.tree.delete(row)
+
+        total = 0.0
         for item in self.data:
-            self.tree.insert("", "end", values=(item['id'], item['date'], item['category'], item['amount']))
-            total += item['amount']
-        
-        rem_balance = self.income - total
-        color = "red" if rem_balance < 0 else "darkgreen"
-        self.balance_label.config(text=f"Remaining Balance: ${rem_balance:.2f}", fg=color)
+            self.tree.insert(
+                "", "end",
+                values=(
+                    item["id"],
+                    item["date"],
+                    item["category"],
+                    f"{item['amount']:.2f}"
+                )
+            )
+            total += item["amount"]
+
+        self.total_label.config(text=f"Total Expenses: ${total:.2f}")
+
+
+# ------------------------------------------------------------------ #
+# Entry point                                                          #
+# ------------------------------------------------------------------ #
 
 if __name__ == "__main__":
     root = tk.Tk()
-    # Add some styling for the danger button
-    style = ttk.Style()
-    style.configure("Danger.TButton", foreground="black")
     app = ExpenseTrackerApp(root)
     root.mainloop()
