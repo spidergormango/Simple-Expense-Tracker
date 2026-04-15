@@ -26,12 +26,11 @@
 ---
 
 ## 1. Graphical Abstract
+<p align="center">
+  <img src="./graphical_abstract.jpg" alt="Application Screenshot" width="700">
+</p>
 
-<!-- After taking your screenshot, upload it to GitHub and update this path -->
-![Main Interface](./screenshots/main_interface.png)
-
-*Figure 1: The main interface showing the expense list, income/balance calculator, and action buttons.*
-
+*Figure 1: The main interface of the application.*
 ---
 
 ## 2. Purpose of the Software
