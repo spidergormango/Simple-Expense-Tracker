@@ -7,6 +7,48 @@ from datetime import datetime
 DATA_FILE = 'expenses.json'
 
 class ExpenseTrackerApp:
+    # 1. Update Function (更新選中的記錄)
+    def update_item(self):
+    selected_item = self.tree.selection()
+    if not selected_item:
+        messagebox.showwarning("Update Error", "Please select an item to update.")
+        return
+    
+    # 獲取新數據 (範例使用彈窗，也可直接讀取 Entry 框)
+    new_category = self.category_entry.get()
+    new_amount = self.amount_entry.get()
+    
+    if new_category and new_amount:
+        item_id = self.tree.item(selected_item)['values'][0]
+        for exp in self.expenses:
+            if exp['id'] == item_id:
+                exp['category'] = new_category
+                exp['amount'] = float(new_amount)
+        self.save_data()
+        self.refresh_tree()
+        messagebox.showinfo("Success", "Record updated successfully.")
+
+# 2. Compare Function (昨日 vs 今日)
+    def compare_spending(self):
+    today = datetime.date.today().isoformat()
+    yesterday = (datetime.date.today() - datetime.timedelta(days=1)).isoformat()
+    
+    today_sum = sum(e['amount'] for e in self.expenses if e['date'] == today)
+    yesterday_sum = sum(e['amount'] for e in self.expenses if e['date'] == yesterday)
+    
+    diff = today_sum - yesterday_sum
+    status = "more" if diff > 0 else "less"
+    messagebox.showinfo("Comparison", f"Today: ${today_sum}\nYesterday: ${yesterday_sum}\nYou spent ${abs(diff)} {status} than yesterday.")
+
+# 3. Income & Balance (計算剩餘預算)
+    def calculate_balance(self):
+        try:
+        income = float(self.income_entry.get())
+        total_spent = sum(e['amount'] for e in self.expenses)
+        balance = income - total_spent
+        self.balance_label.config(text=f"Balance: ${balance:.2f}", fg="green" if balance >= 0 else "red")
+        except ValueError:
+        messagebox.showerror("Input Error", "Please enter a valid number for income.")
     def __init__(self, root):
         self.root = root
         self.root.title("個人財務收支管理工具 V2.0")
