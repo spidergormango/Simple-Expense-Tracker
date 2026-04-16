@@ -4,7 +4,10 @@ import json
 import os
 import datetime
 
-DATA_FILE = 'expenses.json'
+# Always save expenses.json in the same folder as this script,
+# regardless of where the app is launched from (e.g. double-click).
+BASE_DIR  = os.path.dirname(os.path.abspath(__file__))
+DATA_FILE = os.path.join(BASE_DIR, 'expenses.json')
 
 
 class ExpenseTrackerApp:
