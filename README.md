@@ -131,7 +131,9 @@ Week 5  | [=====] Documentation, README, demo video recording
 The application follows an event-driven loop. The diagram below shows the full algorithm covering all five operations.
 
 <!-- Upload your exported flowchart image to GitHub and update this path -->
-![Algorithm Flowchart](./screenshots/algorithm_flowchart.png)
+<p align="center">
+  <img src="./graphical_abstract.jpg.png" alt="Application Screenshot" width="700">
+</p>
 
 *Figure 2: Algorithm flowchart — Add, Update, Delete, Compare, and Balance operations.*
 
