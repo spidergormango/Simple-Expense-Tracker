@@ -185,7 +185,7 @@ The application follows an event-driven loop. The diagram below shows the full a
 
 ## 4. Demo
 
-▶️ **Watch the demo on YouTube:** [https://www.youtube.com/watch?v=YOUR_VIDEO_ID](https://www.youtube.com/watch?v=YOUR_VIDEO_ID)
+▶️ **Watch the demo on YouTube:** [https://youtu.be/roz6rYPaIFs](https://www.youtube.com/watch?v=YOUR_VIDEO_ID)
 
 *(Replace the URL above with your actual YouTube link before submission.)*
 
